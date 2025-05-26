@@ -1,9 +1,8 @@
 import streamlit as st
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
 
-# Load model
+# --- Load and train model ---
 @st.cache_data
 def load_model():
     df = pd.read_csv("diabetes.csv")
@@ -13,32 +12,26 @@ def load_model():
     model.fit(X, y)
     return model
 
-# Simple login check
+# --- Simple login check ---
 def check_login(username, password):
     return username == "admin" and password == "1234"
 
-def main():
-    st.title("🔐 Diabetes Prediction App")
+# --- Login Page ---
+def login_page():
+    st.subheader("🔐 Login")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+    if st.button("Login"):
+        if check_login(username, password):
+            st.session_state.logged_in = True
+            st.success("✅ Logged in successfully. Please click 'Continue'.")
+            st.button("Continue")  # Dummy button to trigger re-render
+        else:
+            st.error("❌ Invalid username or password.")
 
-    if "logged_in" not in st.session_state:
-        st.session_state.logged_in = False
-
-    if not st.session_state.logged_in:
-        st.subheader("Login")
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-
-        if st.button("Login"):
-            if check_login(username, password):
-                st.success("✅ Logged in successfully")
-                st.session_state.logged_in = True
-                st.experimental_rerun()
-            else:
-                st.error("❌ Invalid credentials")
-        return
-
-    # After login
-    st.subheader("🩺 Enter Patient Details")
+# --- Prediction Form ---
+def prediction_form():
+    st.subheader("🩺 Enter Patient Details for Prediction")
 
     model = load_model()
 
@@ -62,6 +55,19 @@ def main():
                 st.error("⚠️ The patient is likely to have diabetes.")
             else:
                 st.success("✅ The patient is unlikely to have diabetes.")
+
+# --- Main ---
+def main():
+    st.title("🧪 Diabetes Prediction App")
+
+    # Initialize login state
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
+
+    if not st.session_state.logged_in:
+        login_page()
+    else:
+        prediction_form()
 
 if __name__ == "__main__":
     main()
